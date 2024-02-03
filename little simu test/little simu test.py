@@ -1,22 +1,18 @@
 import pygame
 import random
 import math
-import time
 import os
-
 
 # Initialize Pygame
 pygame.init()
-
 WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Little Simu Test")
 
-
 # Set up colors
-BGCOLOR = (140, 184, 119) #(151, 193, 169)
-HPBAREDGE = (225, 225, 225)
-HPBARBG = (200, 200, 200)
+BGCOLOR = (196, 240, 167) #(151, 193, 169)
+HPBAREDGE = (155, 155, 155)
+HPBARBG = (120, 120, 120)
 
 RED = (255, 90, 80)
 GREEN = (90, 255, 80)
@@ -122,7 +118,7 @@ def spawn_characters():
 
 def display_winner(winner_team):
     postextx = 130
-    postexty = 105
+    postexty = 205
     fontsize = 50
     if winner_team == RED:
         winnerband = 'Red'
@@ -140,9 +136,6 @@ def display_winner(winner_team):
 # Set up the clock
 clock = pygame.time.Clock()
 
-# Main game loop
-spawn_characters()
-
 damage_texts = []
 frame_counter = 0
 frame_percnt = 300
@@ -151,6 +144,8 @@ clock_tick_cnt = 30
 win_cnt = 0
 win_wait = 5
 
+# Main game loop
+spawn_characters()
 while True:
     window.fill(BGCOLOR)
 
@@ -191,7 +186,6 @@ while True:
     else:
         clock_cnt = clock_cnt + clock_tick_cnt
     frame_counter = (clock_cnt // frame_percnt)
-
 
     if len(alive_teams) == 1:
         if win_cnt == 0:
