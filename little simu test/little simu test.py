@@ -14,14 +14,14 @@ pygame.display.set_caption("Little Simu Test")
 
 
 # Set up colors
-WHITE = (151, 193, 169)
-# RED = (255, 88, 79)
-# GREEN = (181, 255, 174)
-# BLUE = (154, 206, 233)
+BGCOLOR = (140, 184, 119) #(151, 193, 169)
+HPBAREDGE = (225, 225, 225)
+HPBARBG = (200, 200, 200)
 
 RED = (255, 90, 80)
 GREEN = (90, 255, 80)
-BLUE = (75, 150, 255)
+BLUE = (75, 150, 225)
+EDGE = 50
 
 characters = []
 class Character:
@@ -49,20 +49,20 @@ class Character:
 
     def draw_health_bar(self):
         health_percentage = self.hp / self.max_hp
-        bar_width = self.sprite
-        bar_height = 8
-        pygame.draw.rect(window, (0, 0, 0), (self.x - bar_width // 2 - 1, self.y + 25 - 1, bar_width + 2, bar_height + 2), 0, 2, 2, 2)
-        pygame.draw.rect(window, (155, 155, 155), (self.x - bar_width // 2, self.y + 25, bar_width, bar_height), 0, 2, 2, 2)
+        bar_width = self.sprite - 4
+        bar_height = 4
+        pygame.draw.rect(window, HPBAREDGE, (self.x - bar_width // 2 - 2, self.y + 23, bar_width + 4, bar_height + 4), 0, 3, 3, 3)
+        pygame.draw.rect(window, HPBARBG, (self.x - bar_width // 2, self.y + 25, bar_width, bar_height), 0, 2, 2, 2)
         pygame.draw.rect(window, self.team, (self.x - bar_width // 2, self.y + 25, bar_width * health_percentage, bar_height), 0, 2, 2, 2)
 
         # Show current HP in the health bar
         font = pygame.font.Font(None, 12)
         hp_text = font.render(str(int(self.hp)) + " / " + str(int(self.max_hp)), True, (0, 0, 0))
-        window.blit(hp_text, (self.x-12, self.y + 25))
+        window.blit(hp_text, (self.x-12, self.y + 23))
 
 
     def draw_character(self, frame):
-        character_image = pygame.image.load(os.path.join(os.path.dirname(__file__), 'images','Soldier1.png')).convert_alpha() #pygame.image.load("images\\Soldier1.png")
+        character_image = pygame.image.load(os.path.join(os.path.dirname(__file__), 'images','Soldier1.png')).convert_alpha()
         frame_width = character_image.get_width() // 4
         frame_height = character_image.get_height() // 4
         frame_x = (frame % 4) * frame_width
@@ -86,27 +86,14 @@ class Character:
                 move_distance = min(self.movespeed, distance)
                 new_x = self.x + (dx / distance) * move_distance
                 new_y = self.y + (dy / distance) * move_distance
-
-                # # Check if the new position collides with any other character
-                # collision = any(
-                #     other != self and not other.dead and
-                #     new_x < other.x + other.width and new_x + self.width > other.x and
-                #     new_y < other.y + other.height and new_y + self.height > other.y
-                #     for other in characters
-                # )
-
-                # # Only move if there is no collision
-                # if not collision:
-                #     self.x = new_x
-                #     self.y = new_y
                 self.x = new_x
                 self.y = new_y
 
-                # Update direction based on movement
-                if dx > 0:
-                    self.direction = 'right'
-                elif dx < 0:
-                    self.direction = 'left'
+            # Update direction based on target direction
+            if dx > 0:
+                self.direction = 'right'
+            elif dx < 0:
+                self.direction = 'left'
     
     def attack(self, target):
         if not self.dead and not target.dead:
@@ -123,27 +110,32 @@ class Character:
 
 def spawn_characters():
     for _ in range(4):
-        x = random.randint(50, WIDTH - 50)
-        y = random.randint(50, HEIGHT - 50)
+        x = random.randint(EDGE, WIDTH - EDGE)
+        y = random.randint(EDGE, HEIGHT - EDGE)
         characters.append(Character(RED, x, y))
-        x = random.randint(50, WIDTH - 50)
-        y = random.randint(50, HEIGHT - 50)
+        x = random.randint(EDGE, WIDTH - EDGE)
+        y = random.randint(EDGE, HEIGHT - EDGE)
         characters.append(Character(GREEN, x, y))
-        x = random.randint(50, WIDTH - 50)
-        y = random.randint(50, HEIGHT - 50)
+        x = random.randint(EDGE, WIDTH - EDGE)
+        y = random.randint(EDGE, HEIGHT - EDGE)
         characters.append(Character(BLUE, x, y))
 
 def display_winner(winner_team):
-    font = pygame.font.Font(None, 50)
+    postextx = 130
+    postexty = 105
+    fontsize = 50
     if winner_team == RED:
         winnerband = 'Red'
     elif winner_team == GREEN:
         winnerband = 'Green'
     elif winner_team == BLUE:
         winnerband = 'Blue'
+    font = pygame.font.Font(None, fontsize)
     winner_text = font.render(f"" + winnerband + " Team Wins!", True, (44, 44, 44))
-    window.blit(winner_text, (WIDTH // 2 - 150, HEIGHT // 2 - 25))
-    time.sleep(3)
+    window.blit(winner_text, (WIDTH // 2 - postextx + 2, HEIGHT // 2 - postexty + 2))
+    font = pygame.font.Font(None, fontsize)
+    winner_text = font.render(f"" + winnerband + " Team Wins!", True, winner_team)
+    window.blit(winner_text, (WIDTH // 2 - postextx, HEIGHT // 2 - postexty))
 
 # Set up the clock
 clock = pygame.time.Clock()
@@ -153,29 +145,17 @@ spawn_characters()
 
 damage_texts = []
 frame_counter = 0
-frame_percnt = 450
+frame_percnt = 300
 clock_cnt = 0
+clock_tick_cnt = 30
+win_cnt = 0
+win_wait = 5
 
 while True:
-    window.fill(WHITE)
+    window.fill(BGCOLOR)
 
     alive_characters = [character for character in characters if not character.dead]
     alive_teams = {character.team for character in alive_characters}
-
-    for character in alive_characters:
-        if character.target and character.target[0].dead == True:
-                character.target.remove(character.target[0])
-        if not character.target:
-            target_team = random.choice([team for team in alive_teams if team != character.team])
-            target = min((c for c in alive_characters if c.team == target_team), key=lambda c: math.sqrt((character.x - c.x)**2 + (character.y - c.y)**2))
-            character.target.append(target)
-        target = character.target[0]
-        character.move_towards(target)
-        damage_dealt = character.attack(target)
-        if damage_dealt > 0:
-            font = pygame.font.Font(None, 16)
-            damage_text = font.render(f"-{damage_dealt}", True, character.team)
-            damage_texts.append({'text': damage_text, 'pos_x': target.x, 'pos_y': target.y - 30, 'duration': 2 * 30})  # 2 seconds
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -201,26 +181,44 @@ while True:
         if damage_text['duration'] <= 0:
             damage_texts.remove(damage_text)
 
-    pygame.display.flip()
-
     for character in characters:
         if character.hp <= 0:
             character.dead = True
             character.act = 3
     # Increment frame counter for animation
-    if clock_cnt > (1700):
-        clock_cnt = 45
+    if clock_cnt > (frame_percnt*4-clock_tick_cnt):
+        clock_cnt = 0
     else:
-        clock_cnt = clock_cnt + 45
-    frame_counter = (clock_cnt // frame_percnt) #(frame_counter + 1) % (4)  # 4 frames in width, 8 frames in height
+        clock_cnt = clock_cnt + clock_tick_cnt
+    frame_counter = (clock_cnt // frame_percnt)
 
 
     if len(alive_teams) == 1:
+        if win_cnt == 0:
+            for character in alive_characters:
+                character.act = 0     
+        win_cnt += 30
         display_winner(alive_teams.pop())
-        pygame.display.flip()
-        pygame.time.delay(3000)  # Display winner for 3 seconds
-        pygame.quit()
-        exit()
+        if(win_cnt > win_wait * 1000):
+            pygame.quit()
+            exit()
+    else:
+        # Random target for character
+        for character in alive_characters:
+            if character.target and character.target[0].dead == True:
+                character.target.remove(character.target[0])
+            if not character.target:
+                target_team = random.choice([team for team in alive_teams if team != character.team])
+                target = min((c for c in alive_characters if c.team == target_team), key=lambda c: math.sqrt((character.x - c.x)**2 + (character.y - c.y)**2))
+                character.target.append(target)
+            target = character.target[0]
+            character.move_towards(target)
+            damage_dealt = character.attack(target)
+            if damage_dealt > 0:
+                font = pygame.font.Font(None, 16)
+                damage_text = font.render(f"-{damage_dealt}", True, character.team)
+                damage_texts.append({'text': damage_text, 'pos_x': target.x, 'pos_y': target.y - 30, 'duration': 2 * 30})  # 2 seconds
 
+    pygame.display.flip()
     # Set the frames per second
     clock.tick(30)
