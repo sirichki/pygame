@@ -136,13 +136,15 @@ def display_winner(winner_team):
 # Set up the clock
 clock = pygame.time.Clock()
 
+
+
 damage_texts = []
 frame_counter = 0
 frame_percnt = 300
 clock_cnt = 0
 clock_tick_cnt = 30
 win_cnt = 0
-win_wait = 5
+win_wait = 4
 
 # Main game loop
 spawn_characters()
@@ -202,8 +204,7 @@ while True:
             if character.target and character.target[0].dead == True:
                 character.target.remove(character.target[0])
             if not character.target:
-                target_team = random.choice([team for team in alive_teams if team != character.team])
-                target = min((c for c in alive_characters if c.team == target_team), key=lambda c: math.sqrt((character.x - c.x)**2 + (character.y - c.y)**2))
+                target = min((c for c in alive_characters if c.team != character.team), key=lambda c: math.sqrt((character.x - c.x)**2 + (character.y - c.y)**2))
                 character.target.append(target)
             target = character.target[0]
             character.move_towards(target)
